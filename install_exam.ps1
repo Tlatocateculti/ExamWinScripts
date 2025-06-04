@@ -13,7 +13,8 @@ $DesktopPath = "C:\Users\$EgzaminUser\Desktop"
 # Sprawdź, czy użytkownik już istnieje
 if (-not (Get-LocalUser -Name $egzaminUser -ErrorAction SilentlyContinue)) {
     Write-Host "Tworzę konto $egzaminUser bez hasła..."
-    New-LocalUser -Name $egzaminUser -Description $egzaminDesc -FullName $egzaminFull -NoPassword -PasswordNeverExpires
+    New-LocalUser -Name $egzaminUser -Description $egzaminDesc -FullName $egzaminFull -NoPassword -UserMayNotChangePassword | Set-LocalUser -PasswordNeverExpires $true
+    #New-LocalUser -Name $egzaminUser -Description $egzaminDesc -FullName $egzaminFull -NoPassword -PasswordNeverExpires
     # Dodaj do grupy Użytkownicy (standardowe uprawnienia)
     Add-LocalGroupMember -Group $groupsUser -Member $egzaminUser
 } else {
