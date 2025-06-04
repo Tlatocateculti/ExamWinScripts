@@ -7,6 +7,7 @@
 $EgzaminUser = "egzamin"
 $egzaminDesc = "Konto do egzaminu INF.03"
 $egzaminFull = "Egzamin"
+$groupsUser = "Użytkownicy"
 $egzaminProfile = "C:\Users\$egzaminUser"
 $DesktopPath = "C:\Users\$EgzaminUser\Desktop"
 # Sprawdź, czy użytkownik już istnieje
@@ -14,7 +15,7 @@ if (-not (Get-LocalUser -Name $egzaminUser -ErrorAction SilentlyContinue)) {
     Write-Host "Tworzę konto $egzaminUser bez hasła..."
     New-LocalUser -Name $egzaminUser -Description $egzaminDesc -FullName $egzaminFull -NoPassword -PasswordNeverExpires
     # Dodaj do grupy Użytkownicy (standardowe uprawnienia)
-    Add-LocalGroupMember -Group "Users" -Member $egzaminUser
+    Add-LocalGroupMember -Group $groupsUser -Member $egzaminUser
 } else {
     Write-Host "Konto $egzaminUser już istnieje."
 }
