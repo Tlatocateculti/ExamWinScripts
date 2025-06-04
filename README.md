@@ -7,5 +7,5 @@ Jedynie na obecną sesję:
 Set-ExecutionPolicy -Scope Process Unrestricted
 
 Jednorazowo:
-powershell -ExecutionPolicy Bypass -File ".\<skrypt>.ps1"
+powershell -ExecutionPolicy Bypass -File ".\\<skrypt>.ps1"
 
