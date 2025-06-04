@@ -1,4 +1,4 @@
-﻿# Skrypt PowerShell do przygotowania stanowiska INF.03 na Windows
+# Skrypt PowerShell do przygotowania stanowiska INF.03 na Windows
 
 
 
@@ -7,16 +7,15 @@
 $EgzaminUser = "egzamin"
 $egzaminDesc = "Konto do egzaminu INF.03"
 $egzaminFull = "Egzamin"
-$groupsUser = "Użytkownicy"
 $egzaminProfile = "C:\Users\$egzaminUser"
 $DesktopPath = "C:\Users\$EgzaminUser\Desktop"
 # Sprawdź, czy użytkownik już istnieje
 if (-not (Get-LocalUser -Name $egzaminUser -ErrorAction SilentlyContinue)) {
     Write-Host "Tworzę konto $egzaminUser bez hasła..."
-    New-LocalUser -Name $egzaminUser -Description $egzaminDesc -FullName $egzaminFull -NoPassword -UserMayNotChangePassword | Set-LocalUser -PasswordNeverExpires $true
-    #New-LocalUser -Name $egzaminUser -Description $egzaminDesc -FullName $egzaminFull -NoPassword -PasswordNeverExpires
+    New-LocalUser -Name $egzaminUser -Description $egzaminDesc -FullName $egzaminFull -NoPassword -UserMayNotChangePassword | Set-LocalUser -PasswordNeverExpires $true 
+    Start-Sleep -Seconds 1.5
     # Dodaj do grupy Użytkownicy (standardowe uprawnienia)
-    Add-LocalGroupMember -Group $groupsUser -Member $egzaminUser
+    Add-LocalGroupMember -Group "Użytkownicy" -Member $egzaminUser
 } else {
     Write-Host "Konto $egzaminUser już istnieje."
 }
@@ -25,9 +24,53 @@ if (-not (Get-LocalUser -Name $egzaminUser -ErrorAction SilentlyContinue)) {
 Enable-LocalUser -Name $egzaminUser
 
 # Utwórz profil użytkownika (jeśli nie istnieje)
-if (-not (Test-Path $egzaminProfile)) {
-    # Wymuś utworzenie profilu przez uruchomienie procesu jako Egzamin
-    Start-Process -FilePath "cmd.exe" -Credential (New-Object System.Management.Automation.PSCredential($UserName, (ConvertTo-SecureString "" -AsPlainText -Force))) -ArgumentList "/c exit" -WindowStyle Hidden -Wait
+#if (-not (Test-Path $egzaminProfile)) {
+#    # Wymuś utworzenie profilu przez uruchomienie procesu jako Egzamin
+#    Set-LocalUser -Name "Egzamin" -Password (ConvertTo-SecureString "pass" -AsPlainText -Force)
+#    Start-Process -FilePath "cmd.exe" -Credential (New-Object System.Management.Automation.PSCredential($EgzaminUser, (ConvertTo-SecureString "pass" -AsPlainText -Force))) -ArgumentList "/c whoami > %USERPROFILE%\whoami.txt" -WindowStyle Hidden -Wait
+#    Set-LocalUser -Name "Egzamin" -Password (new-object System.Security.SecureString)
+#}
+
+Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+public static class UserProfile {
+    [DllImport("userenv.dll", SetLastError = true, CharSet = CharSet.Auto)]
+    public static extern int CreateProfile(
+        string pszUserSid,
+        string pszUserName,
+        System.Text.StringBuilder pszProfilePath,
+        uint cchProfilePath
+    );
+}
+"@
+
+# Pobierz obiekt użytkownika
+
+$user = Get-LocalUser -Name 'egzamin'
+
+# Przygotuj bufor na ścieżkę profilu
+
+$sb = New-Object System.Text.StringBuilder(260)
+
+$pathLen = $sb.Capacity
+
+
+
+# Wywołaj CreateProfile
+
+$return = [UserProfile]::CreateProfile($user.SID, $user.Name, $sb, $pathLen)
+
+
+
+switch ($return) {
+
+    0 { Write-Host "Profil użytkownika utworzony w: $($sb.ToString())" }
+
+    -2147024713 { Write-Host "Profil już istnieje." }
+
+    default { Write-Warning "Błąd podczas tworzenia profilu: $return" }
+
 }
 
 # Utwórz podstawowe katalogi, jeśli nie istnieją
