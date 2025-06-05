@@ -1,10 +1,6 @@
-# Skrypt PowerShell do przygotowania stanowiska INF.03 na Windows
+﻿# Skrypt PowerShell do przygotowania stanowiska INF.03 na Windows
 if (-not ([System.Management.Automation.PSTypeName]'UserProfile').Type) {
-Add-Type -TypeDefinition @"
-using System;
-using System.Runtime.InteropServices;
-public static class UserProfile {
-    [DllImport("userenv.dll", SetLastError = true, CharSet = CharSet.Auto)]
+Add-Type -TypeDefinition @"using System;using System.Runtime.InteropServices;public static class UserProfile {    [DllImport("userenv.dll", SetLastError = true, CharSet = CharSet.Auto)]
     public static extern int CreateProfile(
         string pszUserSid,
         string pszUserName,
@@ -67,6 +63,30 @@ foreach ($folder in $folders) {
     }
 }
 
+#WYLACZENIE TYLKO OKRESLONYCH UZYTKOWNIKOW!
+#$usersToDisable = @("student", "Gość")
+#foreach ($user in $usersToDisable) {
+#    try {
+#        Disable-LocalUser -Name $user -ErrorAction Stop
+#        Write-Host "Konto $user zostało wyłączone."
+#    } catch {
+#        Write-Warning "Nie udało się wyłączyć konta ${user}: $($_.Exception.Message)"
+#    }
+#}
+
+
+#wylaczenie wszystkich uztytkownikow poza Administrator i egzamin
+$usersToKeep = @("Administrator", "egzamin")
+$allUsers = Get-LocalUser | Where-Object { $_.Enabled -eq $true -and $usersToKeep -notcontains $_.Name }
+foreach ($user in $allUsers) {
+    try {
+        Disable-LocalUser -Name $user.Name -ErrorAction Stop
+        Write-Host "Konto $($user.Name) zostało wyłączone."
+    } catch {
+        Write-Warning "Nie udało się wyłączyć konta $($user.Name): $($_.Exception.Message)"
+    }
+}
+
 $appList = @(
 
     @{
@@ -79,19 +99,19 @@ $appList = @(
         Name = "Vivaldi"
         Url = "https://downloads.vivaldi.com/stable/Vivaldi.6.7.3329.31.x64.exe"
         Installer = "VivaldiSetup.exe"
-        Args = "/silent"
+        Args = "--vivaldi --vivaldi-silent --do-not-launch-chrome --vivaldi-update --system-level"
     },
     @{
         Name = "Brave"
         Url = "https://github.com/brave/brave-browser/releases/latest/download/BraveBrowserStandaloneSetup.exe"
         Installer = "BraveStandaloneSetup.exe"
-        Args = ""
+        Args = "/silent /install"
     },
     @{
         Name = "Visual Studio Code"
         Url = "https://vscode.download.prss.microsoft.com/dbazure/download/stable/258e40fedc6cb8edf399a463ce3a9d32e7e1f6f3/VSCodeSetup-x64-1.100.3.exe"
         Installer = "VSCodeSetup.exe"
-        Args = "/verysilent /allusers"
+        Args = "/verysilent /MERGETASKS=!runcode /allusers"
     },
     @{
         Name = "GIMP"
@@ -168,6 +188,16 @@ Write-Host "`nProces instalacji zakończony."
 
 
 # 5. Zainstaluj rozszerzenia do VS Code (dla wszystkich użytkowników)
+$sharedDir = "C:\VSCodeSharedExtensions"
+
+if (!(Test-Path $sharedDir)) {
+    New-Item -ItemType Directory -Path $sharedDir -Force | Out-Null
+    Write-Host "Utworzono katalog: $sharedDir"
+} else {
+    Write-Host "Katalog już istnieje: $sharedDir"
+}
+Start-Sleep -Seconds 1.5
+icacls $sharedDir /grant "$EgzaminUser`:(OI)(CI)F" /T
 $extensions = @(
     "dbaeumer.vscode-eslint",    # JavaScript
     "esbenp.prettier-vscode",    # JavaScript
@@ -177,7 +207,7 @@ $extensions = @(
     "MS-CEINTL.vscode-language-pack-pl"
 )
 foreach ($ext in $extensions) {
-    Start-Process -FilePath "C:\Program Files\Microsoft VS Code\bin\code.cmd" -ArgumentList "--install-extension $ext --force" -Wait
+    Start-Process -FilePath "C:\Program Files\Microsoft VS Code\bin\code.cmd" -ArgumentList "--extensions-dir $sharedDir --install-extension $ext --force" -Wait
 }
 $users = @("egzamin", "Administrator")
 foreach ($user in $users) {
@@ -195,70 +225,26 @@ foreach ($user in $users) {
 }
 Write-Host "Pakiet językowy polski zainstalowany i ustawiony jako domyślny."
 
-
-# 6. Pobierz i zainstaluj GIMP
-
-#$gimpInstaller = "$TempDir\gimpSetup.exe"
-#Download-File "https://download.gimp.org/mirror/pub/gimp/v2.10/windows/gimp-2.10.36-setup.exe" $gimpInstaller
-#Start-Process -FilePath $gimpInstaller -Wait
-
-
-
-# 7. Pobierz i zainstaluj Notepad++
-#$nppInstaller = "$TempDir\nppSetup.exe"
-#Download-File "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.6.4/npp.8.6.4.Installer.x64.exe" $nppInstaller
-#Start-Process -FilePath $nppInstaller -ArgumentList "/S" -Wait
-
-
-
-# 8. Pobierz i zainstaluj 7-Zip
-
-#$zipInstaller = "$TempDir\7zipSetup.exe"
-
-#Download-File "https://www.7-zip.org/a/7z2405-x64.exe" $zipInstaller
-
-#Start-Process -FilePath $zipInstaller -ArgumentList "/S" -Wait
-
-
-
-# 9. Pobierz i zainstaluj XAMPP (wersja 8.2.12)
-
-#$xamppInstaller = "$TempDir\xamppSetup.exe"
-
-#Download-File "https://deac-ams.dl.sourceforge.net/project/xampp/XAMPP%20Windows/8.2.12/xampp-windows-x64-8.2.12-0-VS16-installer.exe?viasf=1" $xamppInstaller
-
-#Start-Process -FilePath $xamppInstaller -ArgumentList "--mode unattended" -Wait
-
-
-
 # 11. Utwórz skróty na pulpicie "Egzamin"
 
 function Create-Shortcut($target, $shortcutName, $argsLnk) {
 
     $WshShell = New-Object -ComObject WScript.Shell
-
-    
     $Shortcut = $WshShell.CreateShortcut("$DesktopPath\$shortcutName.lnk")
-    
     $Shortcut.TargetPath = $target
-
     $Shortcut.Arguments = $argsLnk
-
     $Shortcut.Save()
-
 }
 
 
 
 # Przykładowe lokalizacje - dostosuj jeśli instalatory zmienią ścieżki!
 
-Create-Shortcut "C:\Program Files\Google\Chrome\Application\chrome.exe" "Google Chrome"
+#Create-Shortcut "C:\Program Files\Google\Chrome\Application\chrome.exe" "Google Chrome"
+#Create-Shortcut "C:\Program Files\Vivaldi\Application\vivaldi.exe" "Vivaldi"
+#Create-Shortcut "C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe" "Brave"
 
-Create-Shortcut "C:\Program Files\Vivaldi\Application\vivaldi.exe" "Vivaldi"
-
-Create-Shortcut "C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe" "Brave"
-
-Create-Shortcut "C:\Program Files\Microsoft VS Code\Code.exe" "Visual Studio Code" "--locale pl"
+Create-Shortcut "C:\Program Files\Microsoft VS Code\Code.exe" "Visual Studio Code" "--locale=pl --extensions-dir $sharedDir"
 
 Create-Shortcut "C:\Program Files\GIMP 2\bin\gimp-2.10.exe" "GIMP"
 
@@ -280,6 +266,21 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer
 
 w32tm /resync
 
+# Pobierz wszystkie interfejsy sieciowe typu Wi-Fi
+$wifiAdapters = Get-NetAdapter | Where-Object { $_.Status -eq "Up" -and $_.InterfaceDescription -match "wi-?fi|wireless|802\.11" }
+
+foreach ($adapter in $wifiAdapters) {
+    try {
+        Write-Host "Wyłączam kartę sieciową: $($adapter.Name) ($($adapter.InterfaceDescription))"
+        Disable-NetAdapter -Name $adapter.Name -Confirm:$false -ErrorAction Stop
+    } catch {
+        Write-Warning "Nie udało się wyłączyć $($adapter.Name): $($_.Exception.Message)"
+    }
+}
+
+if ($wifiAdapters.Count -eq 0) {
+    Write-Host "Nie znaleziono aktywnych kart Wi-Fi do wyłączenia."
+}
 
 
 Write-Host "Przygotowanie stanowiska zakończone. Zweryfikuj ręcznie odłączenie sieci oraz dokumentację papierową."
