@@ -1,5 +1,19 @@
 # Skrypt PowerShell do przygotowania stanowiska INF.03 na Windows
-
+if (-not ([System.Management.Automation.PSTypeName]'UserProfile').Type) {
+Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+public static class UserProfile {
+    [DllImport("userenv.dll", SetLastError = true, CharSet = CharSet.Auto)]
+    public static extern int CreateProfile(
+        string pszUserSid,
+        string pszUserName,
+        System.Text.StringBuilder pszProfilePath,
+        uint cchProfilePath
+    );
+}
+"@
+}
 
 
 # Ustawienia
@@ -16,62 +30,33 @@ if (-not (Get-LocalUser -Name $egzaminUser -ErrorAction SilentlyContinue)) {
     Start-Sleep -Seconds 1.5
     # Dodaj do grupy Użytkownicy (standardowe uprawnienia)
     Add-LocalGroupMember -Group "Użytkownicy" -Member $egzaminUser
+    # Pobierz obiekt użytkownika
+    $user = Get-LocalUser -Name 'egzamin'
+    # Przygotuj bufor na ścieżkę profilu
+    $sb = New-Object System.Text.StringBuilder(260)
+    $pathLen = $sb.Capacity
+    # Wywołaj CreateProfile
+    $return = [UserProfile]::CreateProfile($user.SID, $user.Name, $sb, $pathLen)
+    switch ($return) {
+    0 { Write-Host "Profil użytkownika utworzony w: $($sb.ToString())" }
+    -2147024713 { Write-Host "Profil już istnieje." }
+    default { Write-Warning "Błąd podczas tworzenia profilu: $return" }
+}
+
+
 } else {
     Write-Host "Konto $egzaminUser już istnieje."
 }
-
 # Upewnij się, że konto nie jest zablokowane
 Enable-LocalUser -Name $egzaminUser
-
-# Utwórz profil użytkownika (jeśli nie istnieje)
+# Utwórz profil użytkownika (jeśli nie istnieje) <- to nie działa, katalog domowy się nie tworzy
+# aczkolwiek jest tutaj ciekawa opcja dodawania i usuwania hasła dla konta użytkownika
 #if (-not (Test-Path $egzaminProfile)) {
 #    # Wymuś utworzenie profilu przez uruchomienie procesu jako Egzamin
 #    Set-LocalUser -Name "Egzamin" -Password (ConvertTo-SecureString "pass" -AsPlainText -Force)
 #    Start-Process -FilePath "cmd.exe" -Credential (New-Object System.Management.Automation.PSCredential($EgzaminUser, (ConvertTo-SecureString "pass" -AsPlainText -Force))) -ArgumentList "/c whoami > %USERPROFILE%\whoami.txt" -WindowStyle Hidden -Wait
 #    Set-LocalUser -Name "Egzamin" -Password (new-object System.Security.SecureString)
 #}
-
-Add-Type -TypeDefinition @"
-using System;
-using System.Runtime.InteropServices;
-public static class UserProfile {
-    [DllImport("userenv.dll", SetLastError = true, CharSet = CharSet.Auto)]
-    public static extern int CreateProfile(
-        string pszUserSid,
-        string pszUserName,
-        System.Text.StringBuilder pszProfilePath,
-        uint cchProfilePath
-    );
-}
-"@
-
-# Pobierz obiekt użytkownika
-
-$user = Get-LocalUser -Name 'egzamin'
-
-# Przygotuj bufor na ścieżkę profilu
-
-$sb = New-Object System.Text.StringBuilder(260)
-
-$pathLen = $sb.Capacity
-
-
-
-# Wywołaj CreateProfile
-
-$return = [UserProfile]::CreateProfile($user.SID, $user.Name, $sb, $pathLen)
-
-
-
-switch ($return) {
-
-    0 { Write-Host "Profil użytkownika utworzony w: $($sb.ToString())" }
-
-    -2147024713 { Write-Host "Profil już istnieje." }
-
-    default { Write-Warning "Błąd podczas tworzenia profilu: $return" }
-
-}
 
 # Utwórz podstawowe katalogi, jeśli nie istnieją
 $folders = @("Desktop", "Documents", "Downloads", "Pictures", "Music", "Videos")
