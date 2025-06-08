@@ -1,4 +1,4 @@
-# Ścieżka do profilu Egzamin
+# ÅšcieÅ¼ka do profilu Egzamin
 
 $UserProfile = "C:\Users\egzamin"
 $EgzaminUser = "egzamin"
@@ -6,7 +6,7 @@ $egzaminProfile = "C:\Users\$egzaminUser"
 $DesktopPath = "C:\Users\$EgzaminUser\Desktop"
 $sharedDir = "C:\VSCodeSharedExtensions"
 
-# Katalogi do wyczyszczenia (możesz dodać kolejne wg potrzeb)
+# Katalogi do wyczyszczenia (moÅ¼esz dodaÄ‡ kolejne wg potrzeb)
 
 $FoldersToClean = @(
     "Desktop",
@@ -26,13 +26,14 @@ foreach ($folder in $FoldersToClean) {
     }
 }
 
-$vsCodeProcesses = @("Code", "Code - Insiders")
+$vsCodeProcesses = @("Code", "Code - Insiders")
+
 foreach ($proc in $vsCodeProcesses) {
     Get-Process -Name $proc -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 }
 
 
-# Czyszczenie cache przeglądarek (Chrome, Vivaldi, Brave)
+# Czyszczenie cache przeglÄ…darek (Chrome, Vivaldi, Brave)
 
 $BrowserProfiles = @(
     "$UserProfile\AppData\Local\Google\Chrome\User Data\Default",
@@ -53,7 +54,7 @@ foreach ($profile in $BrowserProfiles) {
 Remove-Item "$UserProfile\AppData\Roaming" -Recurse -Force -ErrorAction SilentlyContinue
 
 
-# Czyszczenie folderów tymczasowych u�ytkownika
+# Czyszczenie folderÃ³w tymczasowych u¿ytkownika
 
 $UserTemp = "$UserProfile\AppData\Local\Temp"
 
@@ -65,7 +66,7 @@ if (Test-Path $UserTemp) {
 Stop-Process -Name "httpd" -Force -ErrorAction SilentlyContinue
 Stop-Process -Name "mysqld" -Force -ErrorAction SilentlyContinue
 
-# Wyczyszczenie katalogów XAMPP
+# Wyczyszczenie katalogÃ³w XAMPP
 $htdocs = "C:\xampp\htdocs"
 Get-ChildItem -Path $htdocs -Exclude "index.php" | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
 $tmp = "C:\xampp\tmp"
@@ -73,7 +74,7 @@ if (Test-Path $tmp) {
     Get-ChildItem -Path $tmp | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
 }
 
-# Reset MySQL – przywrócenie fabrycznego katalogu data
+# Reset MySQL â€“ przywrÃ³cenie fabrycznego katalogu data
 $dataDir = "C:\xampp\mysql\data"
 $factoryDir = "C:\xampp\mysql\backup"
 if (Test-Path $dataDir) {
@@ -81,7 +82,7 @@ if (Test-Path $dataDir) {
 }
 Copy-Item -Path $factoryDir -Destination $dataDir -Recurse
 
-Write-Host "XAMPP i baza MySQL zosta�y wyczyszczone i przywr�cone do stanu fabrycznego."
+Write-Host "XAMPP i baza MySQL zosta³y wyczyszczone i przywrócone do stanu fabrycznego."
 
 function Create-Shortcut($target, $shortcutName, $argsLnk) {
     $WshShell = New-Object -ComObject WScript.Shell
@@ -91,7 +92,7 @@ function Create-Shortcut($target, $shortcutName, $argsLnk) {
     $Shortcut.Save()
 }
 
-# Przykładowe lokalizacje - dostosuj jeśli instalatory zmienią ścieżki!
+# PrzykÅ‚adowe lokalizacje - dostosuj jeÅ›li instalatory zmieniÄ… Å›cieÅ¼ki!
 
 #Create-Shortcut "C:\Program Files\Google\Chrome\Application\chrome.exe" "Google Chrome"
 #Create-Shortcut "C:\Program Files\Vivaldi\Application\vivaldi.exe" "Vivaldi"
@@ -104,17 +105,19 @@ Create-Shortcut "C:\Program Files\Notepad++\notepad++.exe" "Notepad++"
 Create-Shortcut "C:\Program Files\7-Zip\7zFM.exe" "7-Zip"
 Create-Shortcut "C:\xampp\xampp-control.exe" "XAMPP Control Panel"
 
+# Ścieżka do katalogu źródłowego (do skopiowania)
+$sourceDir = "C:\Skrypty\pliki"   # <-- podaj swój katalog
+Copy-Item -Path "$sourceDir\*" -Destination $DesktopPath -Recurse -Force
 
-
-# 12. Odsłoń rozszerzenia plików (dla wszystkich użytkowników)
+# 12. Odsłoń rozszerzenia plików
 
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideFileExt" -Value 0
 
 
 
-# 13. Synchronizuj czas systemowy (wymaga dostępu do internetu)
+# 13. Synchronizuj czas systemowy (wymaga dostÄ™pu do internetu)
 
 w32tm /resync
 
 
-Write-Host "Profil Egzamin zosta� wyczyszczony do stanu fabrycznego."
+Write-Host "Profil Egzamin zosta³ wyczyszczony do stanu fabrycznego."
