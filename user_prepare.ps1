@@ -104,6 +104,7 @@ Create-Shortcut "C:\Program Files\GIMP 2\bin\gimp-2.10.exe" "GIMP"
 Create-Shortcut "C:\Program Files\Notepad++\notepad++.exe" "Notepad++"
 Create-Shortcut "C:\Program Files\7-Zip\7zFM.exe" "7-Zip"
 Create-Shortcut "C:\xampp\xampp-control.exe" "XAMPP Control Panel"
+Create-Shortcut "C:\Windows\explorer.exe" "Eksplorator plików"
 
 # Ścieżka do katalogu źródłowego (do skopiowania)
 $sourceDir = "C:\Skrypty\pliki"   # <-- podaj swój katalog
