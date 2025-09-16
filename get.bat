@@ -16,7 +16,7 @@ set /p line=<"%LIST_FILE%"
 for %%A in (!line!) do (
     echo.
     echo Sprawdzanie: %%A
-    winget list --id %%A | findstr /I "%%A" >nul
+    winget list --id %%A --accept-source-agreements --accept-package-agreements | findstr /I "%%A" >nul
 	if errorlevel 1 (
         echo Instalowanie: %%A...
         winget install --id %%A --silent --accept-source-agreements --accept-package-agreements
