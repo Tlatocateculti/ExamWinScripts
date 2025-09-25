@@ -4,3 +4,4 @@ Notepad++.Notepad++
 ApacheFriends.Xampp.8.2 
 Microsoft.VisualStudio.2022.Community 
 Unity.UnityHub
+gerardog.gsudo
