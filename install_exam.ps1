@@ -97,7 +97,7 @@ $appList = @(
     },
     @{
         Name = "Vivaldi"
-        Url = "https://downloads.vivaldi.com/stable/Vivaldi.6.7.3329.31.x64.exe"
+        Url = "https://downloads.vivaldi.com/stable/Vivaldi.7.7.3851.67.x64.exe"
         Installer = "VivaldiSetup.exe"
         Args = "--vivaldi --vivaldi-silent --do-not-launch-chrome --vivaldi-update --system-level"
     },
@@ -109,19 +109,19 @@ $appList = @(
     },
     @{
         Name = "Visual Studio Code"
-        Url = "https://vscode.download.prss.microsoft.com/dbazure/download/stable/258e40fedc6cb8edf399a463ce3a9d32e7e1f6f3/VSCodeSetup-x64-1.100.3.exe"
+        Url = "https://vscode.download.prss.microsoft.com/dbazure/download/stable/585eba7c0c34fd6b30faac7c62a42050bfbc0086/VSCodeSetup-x64-1.108.1.exe"
         Installer = "VSCodeSetup.exe"
         Args = "/verysilent /MERGETASKS=!runcode /allusers"
     },
     @{
         Name = "GIMP"
-        Url = "https://download.gimp.org/mirror/pub/gimp/v2.10/windows/gimp-2.10.36-setup.exe"
+        Url = "https://download.gimp.org/gimp/v3.0/windows/gimp-3.0.6-setup.exe"
         Installer = "GimpInstall.exe"
         Args = "/ALLUSERS /VERYSILENT /NORESTART /NOCLOSEAPPLICATIONS /NOCANCEL /SUPPRESSMSGBOXES"
     },
     @{
         Name = "NotePad++"
-        Url = "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.6.4/npp.8.6.4.Installer.x64.exe"
+        Url = "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.9/npp.8.9.Installer.x64.exe"
         Installer = "npp.exe"
         Args = "/S"
     },
@@ -188,27 +188,27 @@ Write-Host "`nProces instalacji zakończony."
 
 
 # 5. Zainstaluj rozszerzenia do VS Code (dla wszystkich użytkowników)
-$sharedDir = "C:\VSCodeSharedExtensions"
+#$sharedDir = "C:\VSCodeSharedExtensions"
 
-if (!(Test-Path $sharedDir)) {
-    New-Item -ItemType Directory -Path $sharedDir -Force | Out-Null
-    Write-Host "Utworzono katalog: $sharedDir"
-} else {
-    Write-Host "Katalog już istnieje: $sharedDir"
-}
-Start-Sleep -Seconds 1.5
-icacls $sharedDir /grant "$EgzaminUser`:(OI)(CI)F" /T
-$extensions = @(
-    "dbaeumer.vscode-eslint",    # JavaScript
-    "esbenp.prettier-vscode",    # JavaScript
-    "xdebug.php-debug",          # PHP
-    "bmewburn.vscode-intelephense-client", # PHP
-    "cweijan.vscode-mysql-client2",         # MySQL
-    "MS-CEINTL.vscode-language-pack-pl"
-)
-foreach ($ext in $extensions) {
-    Start-Process -FilePath "C:\Program Files\Microsoft VS Code\bin\code.cmd" -ArgumentList "--extensions-dir $sharedDir --install-extension $ext --force" -Wait
-}
+#if (!(Test-Path $sharedDir)) {
+#    New-Item -ItemType Directory -Path $sharedDir -Force | Out-Null
+#    Write-Host "Utworzono katalog: $sharedDir"
+#} else {
+#    Write-Host "Katalog już istnieje: $sharedDir"
+#}
+#Start-Sleep -Seconds 1.5
+#icacls $sharedDir /grant "$EgzaminUser`:(OI)(CI)F" /T
+#$extensions = @(
+#    "dbaeumer.vscode-eslint",    # JavaScript
+#    "esbenp.prettier-vscode",    # JavaScript
+#    "xdebug.php-debug",          # PHP
+#    "bmewburn.vscode-intelephense-client", # PHP
+#    "cweijan.vscode-mysql-client2",         # MySQL
+#    "MS-CEINTL.vscode-language-pack-pl"
+#)
+#foreach ($ext in $extensions) {
+#    Start-Process -FilePath "C:\Program Files\Microsoft VS Code\bin\code.cmd" -ArgumentList "--extensions-dir $sharedDir --install-extension $ext --force" -Wait
+#}
 $users = @("egzamin", "Administrator")
 foreach ($user in $users) {
     $userProfile = "C:\Users\$user"
@@ -246,7 +246,7 @@ function Create-Shortcut($target, $shortcutName, $argsLnk) {
 
 Create-Shortcut "C:\Program Files\Microsoft VS Code\Code.exe" "Visual Studio Code" "--locale=pl --extensions-dir $sharedDir"
 
-Create-Shortcut "C:\Program Files\GIMP 2\bin\gimp-2.10.exe" "GIMP"
+Create-Shortcut "C:\Program Files\GIMP 3\bin\gimp-3.06.exe" "GIMP"
 
 Create-Shortcut "C:\Program Files\Notepad++\notepad++.exe" "Notepad++"
 
