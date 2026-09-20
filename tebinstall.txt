@@ -2,6 +2,6 @@ Google.Chrome
 Notepad++.Notepad++ 
 7zip.7zip 
 ApacheFriends.Xampp.8.2 
-Microsoft.VisualStudio.2022.Community 
+Microsoft.VisualStudio.Community 
 Unity.UnityHub
 VeyonSolutions.Veyon
