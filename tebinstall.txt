@@ -5,3 +5,4 @@ ApacheFriends.Xampp.8.2
 Microsoft.VisualStudio.Community 
 Unity.UnityHub
 VeyonSolutions.Veyon
+Oracle.VirtualBox
