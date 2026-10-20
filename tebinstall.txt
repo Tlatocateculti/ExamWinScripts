@@ -7,3 +7,4 @@ Unity.UnityHub
 VeyonSolutions.Veyon
 Oracle.VirtualBox
 Microsoft.Office
+TheDocumentFoundation.LibreOffice
